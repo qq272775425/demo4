@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>旋转合并的照片墙</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        #container{
+            /*width: 100%;*/
+            /*height: 100%;*/
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: url(img/bg.jpg);
+        }
+        #container .img{
+            width: 125px;
+            height: 125px;
+            border: 6px solid #fff;
+            -webkit-box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.7);
+            box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.7);
+            position: absolute;
+            left: -200px;
+            top: -200px;
+            cursor: pointer;
+            -webkit-transition: all 1.5s ease-out;
+            -moz-transition: all 1.5s ease-out;
+            -ms-transition: all 1.5s ease-out;
+            -o-transition: all 1.5s ease-out;
+            transition: all 1.5s ease-out;
+        }
+        #container .img span{
+            display: block;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            -webkit-transition: opacity 1.5s ease-out;
+            -moz-transition: opacity 1.5s ease-out;
+            -ms-transition: opacity 1.5s ease-out;
+            -o-transition: opacity 1.5s ease-out;
+            transition: opacity 1.5s ease-out;
+        }
+        .arrow{
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            top: 50%;
+            margin-top: -30px;
+            z-index: 1;
+            border: 1px solid #999;
+            display: none;
+        }
+        #prev{
+            background:#fff url(img/prev.png) no-repeat center ;
+            border-radius: 0 8px 8px 0;
+            left: -20px;
+        }
+        #next{
+            background:#fff url(img/next.png) no-repeat center ;
+            border-radius: 8px 0 0 8px;
+            right: -20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <a href="javascript:;" id="prev" class="arrow"></a>
+    <a href="javascript:;" id="next" class="arrow"></a>
+    <script>
+        (function(){
+            var oContainer = document.getElementById('container');
+            var oPrev = document.getElementById('prev');
+            var oNext = document.getElementById('next');
+
+            var ROW = 4, COL = 6, NUM = ROW * COL,
+                    BIG_IMG_WIDTH = 750, BIG_IMG_HEIGHT = 500,
+                    THUMB_IMG_WIDTH = THUMB_IMG_HEIGHT = 125;
+
+            var bClicked = false;
+
+            var iNow = 0, iNext = 0;
+
+            //加载图片
+            var iLoaded = 0;
+            for(var i=1; i<=NUM; i++){
+                var oBigImg = new Image();
+                oBigImg.src = 'img/'+i+'.jpg';
+                oBigImg.onload = function(){
+                    iLoaded++;
+                    if(iLoaded == NUM * 2){
+                        loaded();
+                    }
+                };
+
+                var oThumbImg = new Image();
+                oThumbImg.src = 'img/thumbs/'+i+'.jpg';
+                oThumbImg.onload = function(){
+                    iLoaded++;
+                    if(iLoaded == NUM * 2){
+                        loaded();
+                    }
+                };
+            }
+
+            function loaded(){//图片加载完毕，创建div
+                var index = 0;
+                var iColGap = (oContainer.offsetWidth - THUMB_IMG_WIDTH * COL) / (COL + 1),
+                        iRowGap = (oContainer.offsetHeight - THUMB_IMG_HEIGHT * ROW) / (ROW + 1);
+                var iCollapseLeft = (oContainer.offsetWidth - BIG_IMG_WIDTH) / 2,
+                        iCollapseTop = (oContainer.offsetHeight - BIG_IMG_HEIGHT) / 2;
+
+                for(var i=0; i<ROW; i++){
+                    for(var j=0; j<COL; j++){
+                        var oDiv = document.createElement('div');
+                        oDiv.index = index;
+                        oDiv.className = 'img';
+                        index++;
+                        oDiv.style.backgroundImage = 'url(img/thumbs/'+index+'.jpg)';
+                        oDiv.innerHTML = '<span></span>';
+                        //oDiv.style.WebkitTransform = 'rotate('+(Math.random() * 40 - 20)+'deg)';
+                        transform(oDiv, 'transform', 'rotate('+(Math.random() * 40 - 20)+'deg)');
+                        oDiv.col = j;
+                        oDiv.row = i;
+
+                        oDiv.pos = {
+                            left: iColGap + j * (iColGap + THUMB_IMG_WIDTH),
+                            top: iRowGap + i * (iRowGap + THUMB_IMG_HEIGHT)
+                        };
+
+                        //为oDiv绑定事件
+                        oDiv.onclick = clickHandler;
+
+                        oContainer.appendChild(oDiv);
+
+                        locate(oDiv, oDiv.pos.left, oDiv.pos.top, true);
+
+                    }
+                }
+                var bDelay = false;
+                function clickHandler(){
+                    iNow = this.index;
+                    var aDiv = oContainer.children;
+                    if(!bDelay){
+                        bDelay = true;
+                        if(bClicked){
+                            for(var i=0; i<aDiv.length; i++){
+                                locate(aDiv[i], aDiv[i].pos.left, aDiv[i].pos.top);
+                                transform(aDiv[i], 'transform', 'rotate('+(Math.random()*40-20)+'deg)');
+                                aDiv[i].style.border = '6px solid #fff';
+                                var oSpan = aDiv[i].children[0];
+                                oSpan.style.opacity = 0;
+                            }
+                            oPrev.style.display = oNext.style.display = 'none';
+                        }else{
+                            var sImgUrl = 'img/'+(this.index+1)+'.jpg';
+                            for(var i=0; i<NUM; i++){
+                                locate(aDiv[i], iCollapseLeft + aDiv[i].col * THUMB_IMG_WIDTH, iCollapseTop + aDiv[i].row * THUMB_IMG_HEIGHT)
+                                transform(aDiv[i], 'transform', 'rotate(0deg)');
+                                aDiv[i].style.border = '1px solid #fff';
+
+                                var oSpan = aDiv[i].children[0];
+                                oSpan.style.backgroundImage = 'url('+sImgUrl+')';
+                                oSpan.style.backgroundPosition = (-aDiv[i].col*THUMB_IMG_WIDTH)+'px '+(-aDiv[i].row*THUMB_IMG_HEIGHT)+'px';
+                                oSpan.style.opacity = 1;
+                            }
+                            oPrev.style.display = oNext.style.display = 'block';
+                        }
+                        setTimeout(function(){
+                            bDelay = false;
+                        }, 1500);
+                        bClicked = !bClicked;
+                    }
+
+                }
+
+                function locate(elem, left, top, delay){
+                    if(delay){
+                        setTimeout(function(){
+                            elem.style.left = left + 'px';
+                            elem.style.top = top + 'px';
+                        }, (NUM - index) * 100);
+                    }else{
+                        elem.style.left = left + 'px';
+                        elem.style.top = top + 'px';
+                    }
+                }
+            }
+
+            function transform(elem, attr, value){
+                ['Webkit', 'Moz', 'Ms', 'O', ''].forEach(function(prefix){
+                    elem.style[prefix + attr.charAt(0).toUpperCase() + attr.substr(1)] = value;
+                });
+            }
+
+            oPrev.onclick = oNext.onclick = function(){
+                if(this == oPrev){
+                    iNow = --iNow == -1 ? NUM - 1 : iNow;
+                }else{
+                    iNow = ++iNow == NUM ? 0 : iNow;
+                }
+                var arr = [];
+                while(arr.length < NUM){
+                    var iRandom = parseInt(Math.random() * 24);
+                    var bStored = true;
+                    for(var i=0; i<arr.length; i++){
+                        if(arr[i] == iRandom){
+                            bStored = false;
+                            break;
+                        }
+                    }
+                    if(bStored){
+                        arr.push(iRandom);
+                    }
+                }
+                var aDiv = oContainer.children;
+                var index = 0;
+                var timer = setInterval(function(){
+                    index++;
+                    if(index == NUM){
+                        clearInterval(timer);
+                    }
+                    console.log(Math.random());
+                    var oDiv = aDiv[arr[index-1]];
+                    var oSpan = oDiv.children[0];
+                    oSpan.style.backgroundImage = 'url(img/'+(iNow+1)+'.jpg)';
+                    oSpan.style.backgroundPosition = (-oDiv.col*THUMB_IMG_WIDTH)+'px '+(-oDiv.row*THUMB_IMG_HEIGHT)+'px';
+                },30);
+            };
+
+
+
+        })();
+    </script>
+</body>
+</html>
