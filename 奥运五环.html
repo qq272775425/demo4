@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        .circle, .circle:after {
+            width: 140px;
+            height: 140px;
+            border-width: 10px;
+            border-style: solid;
+            border-radius: 50%;
+            position: absolute;
+
+        }
+        .circle:after{
+            content: '';
+            left: -10px;
+            top: -10px;
+        }
+
+        .blue {
+            border-color: blue;
+        }
+        .blue:after{
+            border-color: blue;
+            z-index: 1;
+            border-bottom-color: transparent;
+        }
+
+        .yellow {
+            border-color: yellow;
+            left: 180px;
+        }
+        .yellow:after{
+            border-color: yellow;
+            z-index: 1;
+            border-left-color: transparent;
+        }
+
+        .red {
+            border-color: red;
+            left: 360px;
+        }
+        .red:after{
+            border-color: red;
+            z-index: 2;
+            border-left-color: transparent;
+        }
+
+        .green {
+            border-color: green;
+            left: 80px;
+            top: 80px;
+        }
+        .green:after{
+            border-color: green;
+        }
+
+        .black {
+            border-color: black;
+            left: 260px;
+            top: 80px;
+        }
+        .black:after{
+            border-color: black;
+            z-index: 1;
+            border-top-color: transparent;
+        }
+
+    </style>
+</head>
+<body>
+<div class="circle blue"></div>
+<div class="circle yellow"></div>
+<div class="circle red"></div>
+<div class="circle green"></div>
+<div class="circle black"></div>
+
+
+</body>
+</html>
